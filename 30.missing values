@@ -1,0 +1,6 @@
+
+Methods
+
+dropna(axis, thres)
+
+fillna(value = col mean)
