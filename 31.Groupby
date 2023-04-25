@@ -1,0 +1,8 @@
+gb = groupby(col name)
+
+gb.mean()
+gb.sum()=> removes non numerical val
+.count
+.max
+.min
+.describe().transpose()['FB']
