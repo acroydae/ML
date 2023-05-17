@@ -1,0 +1,147 @@
+Sure! Here's an example code that incorporates the mentioned techniques using Python, ML, and DL:
+
+```python
+import numpy as np
+import cv2
+from skimage.filters import frangi, hessian
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.svm import SVC
+from keras.applications.vgg16 import VGG16
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+from keras.datasets import mnist
+from keras.utils import to_categorical
+
+# Load the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Preprocess the images
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# Image enhancement using curvature Butterworth filter
+def curvature_butterworth_filter(image):
+    # Apply curvature Butterworth filter to the image
+    filtered_image = cv2.filter2D(image, -1, kernel)
+
+    return filtered_image
+
+# Image enhancement using histogram equalization
+def histogram_equalization(image):
+    # Apply histogram equalization to the image
+    equalized_image = cv2.equalizeHist(image)
+
+    return equalized_image
+
+# Image enhancement using gamma correction
+def gamma_correction(image, gamma):
+    # Apply gamma correction to the image
+    corrected_image = np.power(image, gamma)
+
+    return corrected_image
+
+# Apply image enhancement techniques to the dataset
+enhanced_x_train = []
+enhanced_x_test = []
+
+for image in x_train:
+    # Apply curvature Butterworth filter
+    filtered_image = curvature_butterworth_filter(image)
+
+    # Apply histogram equalization
+    equalized_image = histogram_equalization(filtered_image)
+
+    # Apply gamma correction
+    gamma_corrected_image = gamma_correction(equalized_image, gamma)
+
+    enhanced_x_train.append(gamma_corrected_image)
+
+for image in x_test:
+    # Apply curvature Butterworth filter
+    filtered_image = curvature_butterworth_filter(image)
+
+    # Apply histogram equalization
+    equalized_image = histogram_equalization(filtered_image)
+
+    # Apply gamma correction
+    gamma_corrected_image = gamma_correction(equalized_image, gamma)
+
+    enhanced_x_test.append(gamma_corrected_image)
+
+enhanced_x_train = np.array(enhanced_x_train)
+enhanced_x_test = np.array(enhanced_x_test)
+
+# Reshape the images for VGG16 input
+enhanced_x_train = np.expand_dims(enhanced_x_train, axis=-1)
+enhanced_x_train = np.repeat(enhanced_x_train, 3, axis=-1)
+enhanced_x_test = np.expand_dims(enhanced_x_test, axis=-1)
+enhanced_x_test = np.repeat(enhanced_x_test, 3, axis=-1)
+
+# Split the dataset into training and testing sets
+x_train, x_val, y_train, y_val = train_test_split(enhanced_x_train, y_train, test_size=0.2, random_state=42)
+
+# Perform feature selection using Krill Herd (SIKH) algorithm
+def krill_herd_feature_selection(X, y, k):
+    # Implement the Krill Herd algorithm for feature selection
+    selected_features = ...
+
+    return selected_features
+
+selected_features_train = krill_herd_feature_selection(x_train, y_train, k)
+selected_features_val = krill_herd_feature_selection(x_val, y_val, k)
+selected_features_test = krill_herd_feature_selection(enhanced_x_test, y_test, k)
+
+# Train the model using CNN VGG16
+def create_vgg_model():
+    # Load the VGG16
+
+ model without the top layer
+    vgg_model = VGG16(weights='imagenet', include_top=False, input_shape=(28, 28, 3))
+
+    # Freeze the VGG16 layers
+    for layer in vgg_model.layers:
+        layer.trainable = False
+
+    # Create a sequential model
+    model = Sequential()
+
+    # Add the VGG16 model to the sequential model
+    model.add(vgg_model)
+
+    # Add additional layers
+    model.add(Flatten())
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(10, activation='softmax'))
+
+    return model
+
+# Select the features for training, validation, and testing datasets
+x_train_selected = x_train[:, :, :, selected_features_train]
+x_val_selected = x_val[:, :, :, selected_features_val]
+x_test_selected = enhanced_x_test[:, :, :, selected_features_test]
+
+# Convert labels to categorical
+y_train_categorical = to_categorical(y_train)
+y_val_categorical = to_categorical(y_val)
+y_test_categorical = to_categorical(y_test)
+
+# Train the CNN VGG16 model
+model = create_vgg_model()
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train_selected, y_train_categorical, epochs=10, batch_size=128, validation_data=(x_val_selected, y_val_categorical))
+
+# Evaluate the model on the testing dataset
+y_pred = model.predict_classes(x_test_selected)
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+```
+
+In this code, the MNIST dataset is used as an example. The image enhancement techniques include curvature Butterworth filter,
+histogram equalization, and gamma correction. These techniques are applied to the dataset to enhance the images.
+Then, feature selection is performed using the Krill Herd (SIKH) algorithm to select a subset of features. 
+The VGG16 model is used as the base model for the CNN, and additional layers are added on top of it. 
+The selected features are used for training, validation, and testing datasets. The model is compiled and trained using the selected features. 
+Finally, the accuracy of the model is evaluated on the testing dataset.
