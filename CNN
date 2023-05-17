@@ -1,0 +1,94 @@
+Sure! Here's an example code for a basic CNN model using the Keras library in Python:
+
+```python
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from keras.datasets import mnist
+from keras.utils import to_categorical
+
+# Load the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Preprocess the data
+x_train = np.expand_dims(x_train, axis=-1)  # Add channel dimension
+x_test = np.expand_dims(x_test, axis=-1)
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+# Create the CNN model
+model = Sequential()
+
+# Add convolutional layers
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+
+# Flatten the feature maps
+model.add(Flatten())
+
+# Add fully connected layers
+model.add(Dense(64, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_test, y_test))
+```
+
+In this code, we use the MNIST dataset as an example. The input images are preprocessed by normalizing them to the range [0, 1]
+and adding a channel dimension to fit the requirements of the CNN model. The CNN model consists of convolutional layers 
+with 32 and 64 filters respectively, followed by max-pooling layers. The feature maps are then flattened and passed through fully connected layers. 
+The output layer uses the softmax activation function to produce class probabilities. The model is compiled with the
+Adam optimizer and categorical cross-entropy loss function. Finally, the model is trained on the training set for 10 epoch
+s with a batch size of 128, and evaluated on the test set.
+
+--------------------------------------------------------
+
+
+Certainly! Here's an example code for training a Convolutional Neural Network (CNN) using the MNIST dataset in Python:
+
+```python
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from keras.datasets import mnist
+from keras.utils import to_categorical
+
+# Load MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Preprocess the data
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+x_train = np.expand_dims(x_train, axis=-1)
+x_test = np.expand_dims(x_test, axis=-1)
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+# Define CNN architecture
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+model.add(Flatten())
+model.add(Dense(64, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_test, y_test))
+```
+
+In this code, the MNIST dataset is used as an example. The input images are normalized and reshaped to have a single channel.
+The CNN architecture consists of two convolutional layers with max pooling, followed by a flatten layer, and two fully connected layers. 
+The model is compiled with the Adam optimizer and categorical cross-entropy loss. It is then trained for 10 epochs with a batch size of 128 
+using the training data. The validation data is used for evaluating the model's performance during training.
