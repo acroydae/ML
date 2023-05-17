@@ -1,0 +1,72 @@
+Sure! Here's an example code for training an SVM (Support Vector Machine) using the Scikit-learn library in Python:
+
+```python
+from sklearn import svm
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Split dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create SVM classifier
+svm_classifier = svm.SVC()
+
+# Train SVM classifier
+svm_classifier.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = svm_classifier.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+```
+
+In this code, the Iris dataset is used as an example. The dataset is split into training and testing sets using the
+`train_test_split` function from Scikit-learn. An SVM classifier is created using `svm.SVC()`. 
+The classifier is trained on the training data using the `fit` method. Predictions are made on the test set using the
+`predict` method, and the accuracy is calculated using the `accuracy_score` function from Scikit-learn. The accuracy of the SVM classifier is then printed.
+
+-------------------------------------------------------------------------------------------
+
+
+Certainly! Here's an example code for training an SVM (Support Vector Machine) using the scikit-learn library in Python:
+
+```python
+import numpy as np
+from sklearn import svm
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Split dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize SVM classifier
+svm_classifier = svm.SVC()
+
+# Train the SVM classifier
+svm_classifier.fit(X_train, y_train)
+
+# Predict the labels for test set
+y_pred = svm_classifier.predict(X_test)
+
+# Calculate the accuracy of the model
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+```
+
+In this code, the Iris dataset is used as an example. The dataset is split into training and testing sets using the 
+`train_test_split` function from scikit-learn. An SVM classifier is initialized using the `svm.SVC` class. 
+The classifier is then trained on the training data using the `fit` method. The labels are predicted for the test set using the `predict` method.
+Finally, the accuracy of the model is calculated by comparing the predicted labels with the true labels using the `accuracy_score` function.
