@@ -1,0 +1,546 @@
+Sure! Here's a concise implementation of a Variational Autoencoder (VAE) in Python using the Keras library:
+
+```python
+import numpy as np
+from keras.layers import Input, Dense, Lambda
+from keras.models import Model
+from keras.losses import mse
+from keras import backend as K
+from keras.datasets import mnist
+
+# Load MNIST dataset
+(x_train, _), (x_test, _) = mnist.load_data()
+
+# Normalize and flatten input data
+x_train = x_train.astype('float32') / 255.0
+x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+x_test = x_test.astype('float32') / 255.0
+x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+
+# Set dimensions
+input_dim = x_train.shape[1]
+hidden_dim = 256
+latent_dim = 2
+
+# Encoder network
+inputs = Input(shape=(input_dim,))
+hidden = Dense(hidden_dim, activation='relu')(inputs)
+z_mean = Dense(latent_dim)(hidden)
+z_log_var = Dense(latent_dim)(hidden)
+
+# Reparameterization trick
+def sampling(args):
+    z_mean, z_log_var = args
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.0, stddev=1.0)
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+z = Lambda(sampling)([z_mean, z_log_var])
+
+# Decoder network
+decoder_hidden = Dense(hidden_dim, activation='relu')
+decoder_output = Dense(input_dim, activation='sigmoid')
+
+hidden_decoded = decoder_hidden(z)
+outputs = decoder_output(hidden_decoded)
+
+# Define VAE model
+vae = Model(inputs, outputs)
+
+# Define loss function
+reconstruction_loss = mse(inputs, outputs)
+kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+vae_loss = K.mean(reconstruction_loss + kl_loss)
+
+vae.add_loss(vae_loss)
+vae.compile(optimizer='adam')
+
+# Train the VAE
+vae.fit(x_train, epochs=10, batch_size=128, validation_data=(x_test, None))
+```
+
+This code implements a VAE using Keras with a simple encoder-decoder architecture. The model is trained on the MNIST dataset. 
+The encoder network consists of a single hidden layer, while the decoder network is symmetrical to the encoder. 
+The VAE is trained to minimize the reconstruction loss (mean squared error) while regularizing the latent space using the Kullback-Leibler divergence. 
+The `sampling` function implements the reparameterization trick to sample from the learned latent distribution during training. 
+The model is compiled using the Adam optimizer, and then trained for 10 epochs using a batch size of 128.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Here's an example code that incorporates the steps you mentioned: image enhancement (adaptive median filter, histogram equalization, gamma correction),
+feature extraction using a Variational Autoencoder (VAE), feature selection with Adaptive Ant Colony Optimization (AACO),
+and training the model using Convolutional Neural Networks (CNN) and Adaptive Support Vector Machines (SVM):
+
+```python
+import numpy as np
+from skimage.filters import median
+from skimage import exposure
+from keras.layers import Input, Dense, Lambda, Conv2D, MaxPooling2D, Flatten
+from keras.models import Model
+from keras.losses import mse
+from keras import backend as K
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from aaco import AACO  # Assuming you have implemented AACO or use any available library for AACO
+
+# Image Dataset
+# Assuming you have a list of image paths called 'image_paths'
+# and a corresponding list of labels called 'labels'
+
+# Placeholder for preprocessed images and labels
+preprocessed_images = []
+preprocessed_labels = []
+
+# Preprocess images
+for image_path, label in zip(image_paths, labels):
+    # Load and enhance image
+    image = load_image(image_path)
+    
+    # Apply adaptive median filter
+    image = median(image)
+    
+    # Apply histogram equalization
+    image = exposure.equalize_hist(image)
+    
+    # Apply gamma correction
+    gamma = 0.5
+    image = exposure.adjust_gamma(image, gamma)
+    
+    # Add preprocessed image and label to lists
+    preprocessed_images.append(image)
+    preprocessed_labels.append(label)
+
+# Convert lists to NumPy arrays
+preprocessed_images = np.array(preprocessed_images)
+preprocessed_labels = np.array(preprocessed_labels)
+
+# Split the dataset into train and test sets
+x_train, x_test, y_train, y_test = train_test_split(preprocessed_images, preprocessed_labels, test_size=0.2, random_state=42)
+
+# Feature Extraction with VAE
+# Set dimensions
+input_shape = x_train[0].shape
+hidden_dim = 256
+latent_dim = 2
+
+# Encoder network
+inputs = Input(shape=input_shape)
+x = Conv2D(32, kernel_size=(3, 3), activation='relu')(inputs)
+x = MaxPooling2D(pool_size=(2, 2))(x)
+x = Conv2D(64, kernel_size=(3, 3), activation='relu')(x)
+x = MaxPooling2D(pool_size=(2, 2))(x)
+x = Flatten()(x)
+hidden = Dense(hidden_dim, activation='relu')(x)
+z_mean = Dense(latent_dim)(hidden)
+z_log_var = Dense(latent_dim)(hidden)
+
+# Reparameterization trick
+def sampling(args):
+    z_mean, z_log_var = args
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.0, stddev=1.0)
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+z = Lambda(sampling)([z_mean, z_log_var])
+
+# Decoder network
+decoder_hidden = Dense(hidden_dim, activation='relu')
+decoder_output = Dense(np.prod(input_shape), activation='sigmoid')
+hidden_decoded = decoder_hidden(z)
+outputs = decoder_output(hidden_decoded)
+
+# Define VAE model
+vae = Model(inputs, outputs)
+
+# Define loss function
+reconstruction_loss = mse(inputs, outputs)
+kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+vae_loss = K.mean(reconstruction_loss
+
+ + kl_loss)
+
+vae.add_loss(vae_loss)
+vae.compile(optimizer='adam')
+
+# Train the VAE
+vae.fit(x_train, x_train, epochs=10, batch_size=128, validation_data=(x_test, x_test))
+
+# Feature Selection with Adaptive Ant Colony Optimization (AACO)
+aaco = AACO()
+selected_features = aaco.select_features(vae.encoder, x_train, y_train)
+
+# Select subset of features
+x_train_selected = x_train[:, selected_features]
+x_test_selected = x_test[:, selected_features]
+
+# Train CNN model
+cnn = build_cnn_model()  # Assuming you have implemented the CNN model architecture
+cnn.fit(x_train_selected, y_train, epochs=10, batch_size=128, validation_data=(x_test_selected, y_test))
+
+# Train Adaptive SVM model
+svm = SVC()  # Assuming you have implemented the Adaptive SVM or use any available library for Adaptive SVM
+svm.fit(x_train_selected, y_train)
+y_pred = svm.predict(x_test_selected)
+accuracy = accuracy_score(y_test, y_pred)
+```
+
+This code assumes you have implemented the AACO algorithm or have a library available for it. 
+It also assumes you have implemented the CNN model architecture and the Adaptive SVM model or have libraries available for them. 
+Adjust the code according to your specific implementation or use appropriate libraries.
+
+The code preprocesses the image dataset by applying an adaptive median filter, histogram equalization, and gamma correction. 
+Then, it uses a VAE to extract features from the preprocessed images. 
+AACO is applied to select a subset of features based on the encoded representation obtained from the VAE. 
+Finally, the code trains a CNN model and an Adaptive SVM model using the selected features and evaluates the performance using accuracy.
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Certainly! Here's an example code that incorporates image enhancement techniques (adaptive median filter, histogram equalization, gamma correction), 
+followed by feature extraction using a Variational Autoencoder (VAE), feature selection using Adaptive Ant Colony Optimization (AACO),
+and training the model with a Convolutional Neural Network (CNN) and Adaptive Support Vector Machine (SVM):
+
+```python
+import numpy as np
+from keras.layers import Input, Dense, Lambda
+from keras.models import Model
+from keras.losses import mse
+from keras import backend as K
+from skimage.filters import median
+from skimage import exposure
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
+from sklearn.utils import shuffle
+
+# Image Dataset
+# Assuming you have a list of image paths called 'image_paths'
+# and a corresponding list of labels called 'labels'
+
+# Placeholder for preprocessed images and labels
+preprocessed_images = []
+preprocessed_labels = []
+
+# Preprocess images
+for image_path, label in zip(image_paths, labels):
+    # Load and enhance image
+    image = load_image(image_path)
+    
+    # Apply adaptive median filter
+    image = median(image)
+    
+    # Apply histogram equalization
+    image = exposure.equalize_hist(image)
+    
+    # Apply gamma correction
+    gamma = 0.5
+    image = exposure.adjust_gamma(image, gamma)
+    
+    # Add preprocessed image and label to lists
+    preprocessed_images.append(image)
+    preprocessed_labels.append(label)
+
+# Convert lists to NumPy arrays
+preprocessed_images = np.array(preprocessed_images)
+preprocessed_labels = np.array(preprocessed_labels)
+
+# Shuffle the dataset
+preprocessed_images, preprocessed_labels = shuffle(preprocessed_images, preprocessed_labels, random_state=42)
+
+# Split the dataset into train and test sets
+x_train, x_test, y_train, y_test = train_test_split(preprocessed_images, preprocessed_labels, test_size=0.2, random_state=42)
+
+# Set dimensions
+input_dim = x_train.shape[1]
+hidden_dim = 256
+latent_dim = 2
+
+# Encoder network
+inputs = Input(shape=(input_dim,))
+hidden = Dense(hidden_dim, activation='relu')(inputs)
+z_mean = Dense(latent_dim)(hidden)
+z_log_var = Dense(latent_dim)(hidden)
+
+# Reparameterization trick
+def sampling(args):
+    z_mean, z_log_var = args
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.0, stddev=1.0)
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+z = Lambda(sampling)([z_mean, z_log_var])
+
+# Decoder network
+decoder_hidden = Dense(hidden_dim, activation='relu')
+decoder_output = Dense(input_dim, activation='sigmoid')
+
+hidden_decoded = decoder_hidden(z)
+outputs = decoder_output(hidden_decoded)
+
+# Define VAE model
+vae = Model(inputs, outputs)
+
+# Define loss function
+reconstruction_loss = mse(inputs, outputs)
+kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+vae_loss = K.mean(reconstruction_loss + kl_loss)
+
+vae.add_loss(vae_loss)
+vae.compile(optimizer='adam')
+
+# Train the VAE
+vae.fit(x_train, epochs=10, batch_size=128, validation_data=(x_test, None))
+
+# Extract features using VAE
+encoder = Model(inputs, z_mean)  # Use the encoder part of VAE
+x_train_encoded =
+
+ encoder.predict(x_train)
+x_test_encoded = encoder.predict(x_test)
+
+# Feature selection with Adaptive Ant Colony Optimization (AACO)
+def feature_selection(X, y):
+    # Your AACO implementation here
+    selected_features = AACO(X, y)
+    return selected_features
+
+selected_train_features = feature_selection(x_train_encoded, y_train)
+selected_test_features = x_test_encoded[:, selected_train_features]
+
+# Train the model with CNN and Adaptive SVM
+# CNN
+# Define your CNN model and train it using selected_train_features
+
+# Adaptive SVM
+svm = SVC(kernel='linear')
+svm.fit(selected_train_features, y_train)
+predictions = svm.predict(selected_test_features)
+accuracy = accuracy_score(y_test, predictions)
+print("Accuracy: {:.2f}%".format(accuracy * 100))
+```
+
+This code assumes you have a list of image paths (`image_paths`) and a corresponding list of labels (`labels`) for your image dataset. 
+The code applies an adaptive median filter, histogram equalization, and gamma correction to each image using the functions provided by the `skimage` library. 
+The preprocessed images and labels are stored in `preprocessed_images` and `preprocessed_labels`, respectively.
+
+The preprocessed images are then split into training and testing sets using the `train_test_split` function from `sklearn.model_selection`.
+The VAE architecture, including the encoder and decoder networks, is defined and trained on the training set.
+
+After training the VAE, the encoded features are extracted using the encoder part of the VAE.
+The feature selection step using Adaptive Ant Colony Optimization (AACO) is represented as a placeholder function (`feature_selection`) 
+that you would need to implement with your AACO algorithm.
+
+Next, the selected features are used to train a Convolutional Neural Network (CNN) model. You need to define and train your own CNN model using 
+`selected_train_features` and `y_train`.
+
+Lastly, an Adaptive Support Vector Machine (SVM) classifier is trained using the selected features. The SVM is initialized with a linear kernel, 
+and the predictions are made on the selected test features. The accuracy of the SVM model is calculated and printed.
+
+Please note that you need to implement the AACO algorithm and define/train your own CNN model according to your specific requirements and data characteristics.
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+Certainly! Here's an elaborated code that includes image enhancement techniques, feature extraction using a Variational Autoencoder (VAE), 
+feature selection with Adaptive Ant Colony Optimization (AACO), and training the model with a Convolutional Neural Network (CNN)
+and an Adaptive Support Vector Machine (SVM):
+
+```python
+import numpy as np
+from skimage.filters import median
+from skimage import exposure
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from keras.layers import Input, Dense, Lambda, Conv2D, Flatten, MaxPooling2D
+from keras.models import Model
+from keras.losses import mse
+from keras import backend as K
+from keras.datasets import mnist
+
+# Image Dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Reshape and normalize input images
+x_train = x_train.reshape((-1, 28, 28, 1)).astype('float32') / 255.0
+x_test = x_test.reshape((-1, 28, 28, 1)).astype('float32') / 255.0
+
+# Image Enhancement
+def enhance_image(image):
+    # Apply adaptive median filter
+    image = median(image)
+    
+    # Apply histogram equalization
+    image = exposure.equalize_hist(image)
+    
+    # Apply gamma correction
+    gamma = 0.5
+    image = exposure.adjust_gamma(image, gamma)
+    
+    return image
+
+# Apply image enhancement to the dataset
+x_train = np.array([enhance_image(image) for image in x_train])
+x_test = np.array([enhance_image(image) for image in x_test])
+
+# Feature Extraction with VAE
+input_dim = x_train.shape[1:]
+hidden_dim = 256
+latent_dim = 2
+
+# Encoder network
+inputs = Input(shape=input_dim)
+hidden = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
+hidden = MaxPooling2D((2, 2))(hidden)
+hidden = Conv2D(64, (3, 3), activation='relu', padding='same')(hidden)
+hidden = MaxPooling2D((2, 2))(hidden)
+hidden = Flatten()(hidden)
+hidden = Dense(hidden_dim, activation='relu')(hidden)
+z_mean = Dense(latent_dim)(hidden)
+z_log_var = Dense(latent_dim)(hidden)
+
+# Reparameterization trick
+def sampling(args):
+    z_mean, z_log_var = args
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.0, stddev=1.0)
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+z = Lambda(sampling)([z_mean, z_log_var])
+
+# Decoder network
+decoder_hidden = Dense(hidden_dim, activation='relu')
+decoder_output = Dense(np.prod(input_dim), activation='sigmoid')
+hidden_decoded = decoder_hidden(z)
+outputs = decoder_output(hidden_decoded)
+
+# Define VAE model
+vae = Model(inputs, outputs)
+
+# Define loss function
+reconstruction_loss = mse(K.flatten(inputs), K.flatten(outputs))
+kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+vae_loss = K.mean(reconstruction_loss + kl_loss)
+
+vae.add_loss(vae_loss)
+vae.compile(optimizer='adam')
+
+# Train the VAE
+vae.fit(x_train, epochs=10, batch_size=128, validation_data=(x_test, None))
+
+# Feature Selection with AACO
+def feature_selection(X, y):
+    # Perform feature selection
+
+ using AACO
+    # Your AACO implementation goes here
+    selected_features = ...
+    
+    # Return selected features
+    return selected_features
+
+# Apply feature selection
+selected_train_features = feature_selection(x_train, y_train)
+selected_test_features = feature_selection(x_test, y_test)
+
+# Train the Model with CNN and Adaptive SVM
+# Flatten selected features
+selected_train_features = selected_train_features.reshape((selected_train_features.shape[0], -1))
+selected_test_features = selected_test_features.reshape((selected_test_features.shape[0], -1))
+
+# Train CNN
+cnn = Sequential()
+cnn.add(Dense(128, activation='relu', input_shape=selected_train_features.shape[1:]))
+cnn.add(Dense(64, activation='relu'))
+cnn.add(Dense(10, activation='softmax'))
+cnn.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+cnn.fit(selected_train_features, y_train, epochs=10, batch_size=128, validation_data=(selected_test_features, y_test))
+
+# Train Adaptive SVM
+svm = SVC()
+svm.fit(selected_train_features, y_train)
+
+# Evaluate the models
+cnn_accuracy = cnn.evaluate(selected_test_features, y_test)[1]
+svm_accuracy = svm.score(selected_test_features, y_test)
+
+print('CNN Accuracy:', cnn_accuracy)
+print('SVM Accuracy:', svm_accuracy)
+```
+
+In this code, the MNIST dataset is used as an example. The input images are enhanced using adaptive median filtering, histogram equalization,
+and gamma correction. A Variational Autoencoder (VAE) is then trained to extract features from the enhanced images.
+Feature selection is performed using Adaptive Ant Colony Optimization (AACO) algorithm (you need to implement the AACO algorithm separately). 
+Finally, a Convolutional Neural Network (CNN) and an Adaptive Support Vector Machine (SVM) are trained on the selected features,
+and their accuracies are evaluated.
+-------------------------------------------------------------------------------------------------
+
+Certainly! Here's an example code for training a Variational Autoencoder (VAE) using the MNIST dataset in Python:
+
+```python
+import numpy as np
+from keras.layers import Input, Dense, Lambda
+from keras.models import Model
+from keras.losses import mse
+from keras.datasets import mnist
+import keras.backend as K
+
+# Load MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Preprocess the data
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+x_train = x_train.reshape((-1, 784))
+x_test = x_test.reshape((-1, 784))
+
+# Define VAE architecture
+input_dim = x_train.shape[1]
+hidden_dim = 256
+latent_dim = 2
+
+# Encoder
+inputs = Input(shape=(input_dim,))
+hidden = Dense(hidden_dim, activation='relu')(inputs)
+z_mean = Dense(latent_dim)(hidden)
+z_log_var = Dense(latent_dim)(hidden)
+
+# Reparameterization trick
+def sampling(args):
+    z_mean, z_log_var = args
+    epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.0, stddev=1.0)
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+z = Lambda(sampling)([z_mean, z_log_var])
+
+# Decoder
+decoder_hidden = Dense(hidden_dim, activation='relu')
+decoder_output = Dense(input_dim, activation='sigmoid')
+hidden_decoded = decoder_hidden(z)
+outputs = decoder_output(hidden_decoded)
+
+# Define VAE model
+vae = Model(inputs, outputs)
+
+# Define loss function
+reconstruction_loss = mse(inputs, outputs)
+kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+vae_loss = K.mean(reconstruction_loss + kl_loss)
+
+vae.add_loss(vae_loss)
+vae.compile(optimizer='adam')
+
+# Train the VAE
+vae.fit(x_train, epochs=10, batch_size=128, validation_data=(x_test, None))
+```
+
+This code trains a VAE with a 2-dimensional latent space using the MNIST dataset. The input images are flattened to a vector of size 784. 
+The VAE architecture consists of an encoder and a decoder. The encoder network maps the input to the mean and log-variance of the latent space. 
+The reparameterization trick is used to sample from the latent space. The decoder network reconstructs the input image from the sampled latent space. 
+The VAE is trained by minimizing the reconstruction loss and the Kullback-Leibler divergence between the learned latent distribution and a standard 
+normal distribution. The VAE is compiled with the Adam optimizer, and it is trained for 10 epochs with a batch size of 128.
+
+----------------------------------------------------------------------------------------------------------------------------------------
