@@ -1,0 +1,61 @@
+# Step 1: Data Preprocessing
+# Load the dataset from Kaggle
+import pandas as pd
+df = pd.read_csv('amazon_reviews.csv')
+
+# Preprocessing
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+
+nltk.download('punkt')
+nltk.download('stopwords')
+
+stop_words = set(stopwords.words('english'))
+stemmer = PorterStemmer()
+
+def preprocess_text(text):
+    words = word_tokenize(text.lower())
+    words = [stemmer.stem(word) for word in words if word.isalpha() and word not in stop_words]
+    return ' '.join(words)
+
+df['processed_review'] = df['review'].apply(preprocess_text)
+
+# Step 2: LDA Topic Modeling
+from gensim.models import LdaModel
+from gensim.corpora import Dictionary
+
+texts = df['processed_review'].apply(str.split)
+dictionary = Dictionary(texts)
+corpus = [dictionary.doc2bow(text) for text in texts]
+
+num_topics = 5
+lda_model = LdaModel(corpus=corpus, id2word=dictionary, num_topics=num_topics)
+
+# Step 3: Feature Optimization with GA
+# You would need to define the fitness function and implement the GA here to optimize the topics/features.
+
+# Step 4: KNN Model for Recommendation
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+
+X = corpus
+y = df['rating']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize and train the KNN model
+knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model.fit(X_train, y_train)
+
+# Step 5: Recommendation
+# To make a recommendation for a new review, follow the steps mentioned in the previous response.
+
+# Step 6: Evaluation
+y_pred = knn_model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("KNN Accuracy:", accuracy)
+
+# Further steps would involve evaluating the recommendation system using appropriate metrics.
