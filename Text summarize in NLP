@@ -1,0 +1,57 @@
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.probability import FreqDist
+from nltk.cluster.util import cosine_distance
+
+# Download necessary resources (if not already downloaded)
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Sample text
+text = """
+Natural language processing (NLP) is a field of artificial intelligence that focuses on the interaction between computers and humans through natural language. It involves tasks such as language generation, language comprehension, and machine translation. NLP has applications in various domains including chatbots, sentiment analysis, and summarization.
+
+Text summarization is the process of distilling the most important information from a text. There are two main approaches: extractive and abstractive summarization. Extractive summarization involves selecting and condensing existing sentences, while abstractive summarization involves generating new sentences to capture the main ideas.
+
+In extractive summarization, sentences are ranked based on their importance. Common techniques include keyword extraction, sentence length, and word frequency analysis. Cosine similarity can also be used to measure the similarity between sentences.
+
+Overall, text summarization is a challenging task in NLP, with many applications in information retrieval and content generation.
+"""
+
+# Tokenize sentences and remove stopwords
+sentences = sent_tokenize(text)
+stop_words = set(stopwords.words('english'))
+
+def preprocess(sentence):
+    words = word_tokenize(sentence)
+    words = [word.lower() for word in words if word.isalnum()]
+    words = [word for word in words if word not in stop_words]
+    return words
+
+# Calculate sentence importance using word frequency
+def calculate_sentence_scores(sentences, common_words):
+    scores = []
+    for sentence in sentences:
+        words = preprocess(sentence)
+        scores.append(sum([fdist[word] for word in words]))
+    return scores
+
+# Create sentence frequency distribution
+all_words = [word for sentence in sentences for word in preprocess(sentence)]
+fdist = FreqDist(all_words)
+
+# Calculate sentence scores
+sentence_scores = calculate_sentence_scores(sentences, all_words)
+
+# Select top N sentences as summary
+summary_length = 2
+summary_indices = sorted(range(len(sentence_scores)), key=lambda i: sentence_scores[i], reverse=True)[:summary_length]
+summary = [sentences[i] for i in summary_indices]
+
+print("Original Text:")
+print(text)
+
+print("\nSummary:")
+for sentence in summary:
+    print(sentence)
