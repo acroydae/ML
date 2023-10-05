@@ -1,0 +1,44 @@
+The code for the entire process described in the article, including data collection, pre-processing, feature extraction, and classification using different machine learning classifiers, is quite extensive and would require a significant amount of code. I can provide you with a simplified Python code example that demonstrates the key steps using scikit-learn and pandas. You can use this as a starting point and expand upon it based on your specific dataset and requirements.
+
+```python
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Step 1: Data Collection and Pre-processing
+# Load the dataset (Assuming a CSV file with columns 'Text' and 'SCI_Label')
+data = pd.read_csv("cyber_incidents_dataset.csv")
+data.dropna(inplace=True)  # Remove rows with missing values
+
+# Step 2: Feature Extraction
+# Convert text data into numerical features using Bag of Words (BoW) and TF-IDF
+vectorizer = CountVectorizer(ngram_range=(1, 2))  # Use uni-gram and bi-gram
+X = vectorizer.fit_transform(data['Text'])
+tfidf_transformer = TfidfTransformer()
+X = tfidf_transformer.fit_transform(X)
+y = data['SCI_Label']
+
+# Step 3: Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Classification using different classifiers
+classifiers = {
+    "Naïve Bayes": MultinomialNB(),
+    "Support Vector Machine": SVC(),
+    "Logistic Regression": LogisticRegression(),
+    "Random Forest": RandomForestClassifier()
+}
+
+for classifier_name, classifier in classifiers.items():
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"{classifier_name} Accuracy: {accuracy}")
+```
+
+This code demonstrates the key steps mentioned in the article using a simplified dataset and scikit-learn's built-in classifiers. You would need to adapt this code to your specific dataset format, feature extraction needs, and tuning of hyperparameters for better performance. Additionally, you may need to handle more complex aspects of real-world data, such as text cleaning, feature selection, and cross-validation, depending on the details of your project.
